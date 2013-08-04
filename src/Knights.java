@@ -138,6 +138,7 @@ public class Knights<V extends Vertex280, E extends Edge280<V>> extends GraphAdj
 		int MaxNumber=0;
 		for (int i = 1; i < k+1; i++) {
 			int thisNumber = largestFromthisPoint(k, i, true);
+			System.out.println("new chess!last one have: "+thisNumber+" Knights!");
 			if (thisNumber>MaxNumber) {
 				MaxNumber = thisNumber;
 			}
@@ -154,25 +155,28 @@ public class Knights<V extends Vertex280, E extends Edge280<V>> extends GraphAdj
 	 * @return the largest possibility number which can put knight into the chess.
 	 */
 	private static int largestFromthisPoint(int k, int i, boolean b) {
-		Knights<Vertex280, Edge280<Vertex280>> K = new Knights<>(4*k*k, false);
-		K.theCheckerboard[i].setFirstItem(b);	
-		if (b) {
-			return checkNeighbour(K,i)+1;
-		}else {
-			return checkNeighbour(K,i);
+	Knights<Vertex280, Edge280<Vertex280>> K = new Knights<>(4*k*k, false);
+	K.theCheckerboard[i].setFirstItem(b);	
+	int maxNumber = 0;
+	for (int j = 1; j < K.capacity()+1; j++) {
+		if (thisPointCanPutKnightOn(K, j)) {
+			K.theCheckerboard[i].setFirstItem(true);
 		}
+		maxNumber =maxNumber + checkNeighbour(K,j);
 	}
-
+	return maxNumber;
+}
 	private static int checkThisPoint(Knights<Vertex280, Edge280<Vertex280>> k, int i) {
 		if (thisPointCanPutKnightOn(k,i)) {
 			k.theCheckerboard[i].setFirstItem(true);
-			k.adjLists[i].goFirst();
-
-			while (!k.adjLists[i].after()) {
-				int code = k.adjLists[i].item().secondItem().index();
+			LinkedIterator280<Edge280<Vertex280>> anIterator = new LinkedIterator280<>(k.adjLists[i]);
+			anIterator.goFirst();
+			while (anIterator.itemExists()) {
+				int code = anIterator.item().secondItem().index();
 				int j= k.theCheckerboard[code].secondItem();
 				k.theCheckerboard[code].setSecondItem(j+1);
-				k.adjLists[i].goForth();
+				anIterator.goForth();
+				
 			}
 			//TODO
 			//test code
@@ -192,14 +196,16 @@ public class Knights<V extends Vertex280, E extends Edge280<V>> extends GraphAdj
 		if (k.theCheckerboard[i].secondItem() > 1) {
 			lessThanTwoKnightCanAttack = false;
 		}
-		k.adjLists[i].goFirst();
-		while (!k.adjLists[i].after()) {
-			int code = k.adjLists[i].item().secondItem().index();
+		LinkedIterator280<Edge280<Vertex280>> anIterator = new LinkedIterator280<>(k.adjLists[i]);
+		anIterator.goFirst();
+		while (anIterator.itemExists()) {
+			
+			int code = anIterator.item().secondItem().index();
 			if (k.theCheckerboard[code].secondItem() > 1 ) {
 				knightNeighbourFeelOK = false;
 				break;
 			}
-			k.adjLists[i].goForth();
+			anIterator.goForth();
 		}
 		
 		
@@ -209,16 +215,26 @@ public class Knights<V extends Vertex280, E extends Edge280<V>> extends GraphAdj
 	private static int checkNeighbour(Knights<Vertex280, Edge280<Vertex280>> k, int i) {
 		int MaxNumber=0;
 		int thisNumber=0;
-		Knights<Vertex280, Edge280<Vertex280>> W = (Knights<Vertex280, Edge280<Vertex280>>) k.clone();
+
+		
 		LinkedIterator280<Edge280<Vertex280>> anIterator = new LinkedIterator280<>(k.adjLists[i]);
 		anIterator.goFirst();
 		while (anIterator.itemExists()) {
+			
+			Knights<Vertex280, Edge280<Vertex280>> W = (Knights<Vertex280, Edge280<Vertex280>>) k.clone();
+			for (int j = 1; j < k.capacity()+1; j++) {
+				W.theCheckerboard[j] = W.theCheckerboard[j].clone();
+			}
 			int code = anIterator.item().secondItem().index();
-			thisNumber =checkThisPoint(k, code);
+//			System.out.println("check #"+code+" square.");
+			thisNumber +=checkThisPoint(W, code);
+			
 			if (thisNumber>MaxNumber) {
 				MaxNumber = thisNumber;
 			}
+			
 			anIterator.goForth();
+//			System.out.println(W.theCheckerboard.toString());
 		}
 		return MaxNumber;
 	}
@@ -227,6 +243,6 @@ public class Knights<V extends Vertex280, E extends Edge280<V>> extends GraphAdj
 		Knights<Vertex280, Edge280<Vertex280>> K = new Knights<>(64, false);
 		
 		System.out.println(K);
-		System.out.println(Knights.howMany(4));
+		System.out.println("\n the final answer is: " + Knights.howMany(4));
 	}
 }
